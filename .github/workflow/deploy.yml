@@ -1,0 +1,14 @@
+name: Mini Odoo SH Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Test Workflow
+        run: echo "Github Actions is working"
