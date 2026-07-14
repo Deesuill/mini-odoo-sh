@@ -4,13 +4,13 @@ services:
     container_name: miniodoo-postgres
     restart: unless-stopped
 
-  environment:
-    POSTGRES_DB: postgres
-    POSTGRES_USER: odoo
-    POSTGRES_PASSWORD: odoo
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
 
-  volumes:
-    - postgres-data:/var/lib/postgresql/data
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
   odoo:
     image: odoo:18
@@ -27,7 +27,7 @@ services:
       HOST: postgres
       USER: odoo
       PASSWORD: odoo
-    
+
     volumes:
       - odoo-data:/var/lib/odoo
 
