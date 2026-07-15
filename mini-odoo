@@ -1,0 +1,97 @@
+#!/bin/bash
+
+set -e
+
+BASE_PATH="/opt/mini-odoo-sh/scripts"
+
+
+COMMAND=$1
+
+shift || true
+
+
+case "$COMMAND" in
+
+    create)
+
+        $BASE_PATH/create-instance.sh "$@"
+
+        ;;
+
+
+    list)
+
+        $BASE_PATH/list-instances.sh "$@"
+
+        ;;
+
+
+    deploy)
+
+        $BASE_PATH/deploy-instance.sh "$@"
+
+        ;;
+
+    destroy)
+
+        $BASE_PATH/destroy-instance.sh "$@"
+
+        ;;
+
+    start)
+
+        $BASE_PATH/manage-instance.sh start "$@"
+
+        ;;
+
+
+    stop)
+
+        $BASE_PATH/manage-instance.sh stop "$@"
+
+        ;;
+
+
+    restart)
+
+        $BASE_PATH/manage-instance.sh restart "$@"
+
+        ;;
+
+    health)
+
+        $BASE_PATH/health-instance.sh "$@"
+
+        ;;
+
+    status)
+
+        $BASE_PATH/manage-instance.sh status "$@"
+
+        ;;
+
+    backup)
+
+        $BASE_PATH/backup-instance.sh "$@"
+
+        ;;
+
+    *)
+
+        echo "mini-odoo commands:"
+        echo ""
+        echo " create <name> <repo>"
+        echo " list"
+        echo " deploy <name>"
+        echo " destroy <name>"
+        echo " start <name>"
+        echo " stop <name>"
+        echo " restart <name>"
+        echo " health <name>"
+        echo " status <name>"
+        echo " backup <name>"
+        exit 1
+
+        ;;
+
+esac

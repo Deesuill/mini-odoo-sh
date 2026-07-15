@@ -1,0 +1,6 @@
+{
+    "odoo-demo": {
+        "repository": "git@github.com:Deesuill/odoo-demo.git",
+        "port": "18080"
+    }
+}
