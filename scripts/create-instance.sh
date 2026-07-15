@@ -33,6 +33,9 @@ mkdir -p "$INSTANCE_PATH"
 echo "Cloning repository..."
 git clone "$REPOSITORY" "$INSTANCE_PATH"
 
+echo "Initializing project structure..."
+
+ /opt/mini-odoo-sh/scripts/init-project.sh "$INSTANCE_PATH"
 
 echo "Creating data folders..."
 mkdir -p "$INSTANCE_PATH/data/postgres"

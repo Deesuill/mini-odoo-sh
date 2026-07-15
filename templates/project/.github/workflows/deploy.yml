@@ -23,4 +23,4 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
 
           script: |
-            /opt/mini-odoo-sh/scripts/deploy-instance.sh INSTANCE_NAME
+            /opt/mini-odoo-sh/scripts/deploy-instance.sh {{INSTANCE_NAME}}
