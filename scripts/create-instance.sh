@@ -37,7 +37,8 @@ git clone "$REPOSITORY" "$INSTANCE_PATH"
 echo "Creating data folders..."
 mkdir -p "$INSTANCE_PATH/data/postgres"
 mkdir -p "$INSTANCE_PATH/data/odoo"
-
+mkdir -p "$INSTANCE_PATH/addons"
+mkdir -p "$INSTANCE_PATH/config"
 
 echo "Finding available port..."
 PORT=$(/opt/mini-odoo-sh/scripts/get-free-port.sh)
