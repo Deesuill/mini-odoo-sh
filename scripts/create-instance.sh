@@ -68,6 +68,18 @@ cd "$INSTANCE_PATH"
 
 docker compose up -d
 
+echo "Saving generated files to repository..."
+
+cd "$INSTANCE_PATH"
+
+git add .
+
+if git diff --cached --quiet; then
+    echo "No changes to commit."
+else
+    git commit -m "Initialize mini-odoo instance"
+    git push origin main
+fi
 
 echo ""
 echo "================================="

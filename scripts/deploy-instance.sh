@@ -41,10 +41,23 @@ git pull
 echo "Restarting containers..."
 docker compose up -d
 
-echo "Updating modules..."
+echo "Detecting modules..."
 
-/opt/mini-odoo-sh/scripts/upgrade-modules.sh "$INSTANCE_NAME"
+MODULES=$(/opt/mini-odoo-sh/scripts/detect-modules.sh "$INSTANCE_NAME" | tail -n +2)
 
+
+if [ -n "$MODULES" ]; then
+
+    echo "Modules found:"
+    echo "$MODULES"
+
+    /opt/mini-odoo-sh/scripts/upgrade-modules.sh "$INSTANCE_NAME" "$MODULES"
+
+else
+
+    echo "No custom modules found."
+
+fi
 echo "Checking containers..."
 
 sleep 5

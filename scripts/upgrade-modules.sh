@@ -3,10 +3,12 @@
 set -e
 
 INSTANCE_NAME=$1
+MODULES=$2
 
-if [ $# -ne 1 ]; then
+
+if [ $# -ne 2 ]; then
     echo "Usage:"
-    echo "./upgrade-modules.sh <instance-name>"
+    echo "./upgrade-modules.sh <instance-name> <modules>"
     exit 1
 fi
 
@@ -23,11 +25,12 @@ fi
 cd "$INSTANCE_PATH"
 
 
-echo "Updating Odoo modules..."
+echo "Updating modules:"
+echo "$MODULES"
 
 
 docker compose run --rm odoo \
-    -u all \
+    -u "$MODULES" \
     --stop-after-init
 
 
