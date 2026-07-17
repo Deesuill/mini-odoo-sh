@@ -2,11 +2,17 @@
 
 set -e
 
+MINI_ODOO_HOME="/opt/mini-odoo-sh"
+
+source "$MINI_ODOO_HOME/lib/common.sh"
+source "$MINI_ODOO_HOME/lib/logging.sh"
+source "$MINI_ODOO_HOME/lib/docker.sh"
+source "$MINI_ODOO_HOME/lib/github.sh"
+source "$MINI_ODOO_HOME/lib/instance.sh"
+
+load_platform_config
+
 INSTANCE_NAME=$1
-
-BASE_PATH="/opt/mini-odoo-instances"
-INSTANCE_PATH="$BASE_PATH/$INSTANCE_NAME"
-
 
 if [ $# -ne 1 ]; then
     echo "Usage:"
@@ -14,65 +20,61 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
+instance_require "$INSTANCE_NAME"
 
-if [ ! -d "$INSTANCE_PATH" ]; then
-    echo "Instance not found: $INSTANCE_NAME"
-    exit 1
-fi
+INSTANCE_PATH=$(instance_path "$INSTANCE_NAME")
 
+log_info "Deploying instance: $INSTANCE_NAME"
 
-echo "Deploying instance: $INSTANCE_NAME"
+instance_cd "$INSTANCE_NAME"
 
-
-cd "$INSTANCE_PATH"
-
-
-echo "Saving current version..."
+log_info "Saving current version..."
 
 CURRENT_COMMIT=$(git rev-parse HEAD)
 
-echo "Current commit: $CURRENT_COMMIT"
+log_info "Current commit: $CURRENT_COMMIT"
 
-
-echo "Pulling latest changes..."
+log_info "Pulling latest changes..."
 
 git pull
 
-echo "Restarting containers..."
-docker compose up -d
+log_info "Restarting containers..."
 
-echo "Detecting modules..."
+docker_compose_up
 
-MODULES=$(/opt/mini-odoo-sh/scripts/detect-modules.sh "$INSTANCE_NAME" | tail -n +2)
+log_info "Detecting modules..."
 
+MODULES=$("$MINI_ODOO_HOME/scripts/detect-modules.sh" "$INSTANCE_NAME" | tail -n +2)
 
 if [ -n "$MODULES" ]; then
 
-    echo "Modules found:"
+    log_info "Modules found:"
     echo "$MODULES"
 
-    /opt/mini-odoo-sh/scripts/upgrade-modules.sh "$INSTANCE_NAME" "$MODULES"
+    "$MINI_ODOO_HOME/scripts/upgrade-modules.sh" \
+        "$INSTANCE_NAME" \
+        "$MODULES"
 
 else
 
-    echo "No custom modules found."
+    log_info "No custom modules found."
 
 fi
-echo "Checking containers..."
+
+log_info "Checking containers..."
 
 sleep 5
 
-if ! docker compose ps | grep -q "Up"; then
+if ! docker_compose_ps | grep -q "Up"; then
 
-    echo "Deployment failed!"
-    echo "Rolling back..."
+    log_error "Deployment failed! Rolling back..."
 
     git reset --hard "$CURRENT_COMMIT"
 
-    docker compose up -d
+    docker_compose_up
 
     exit 1
 
 fi
 
-echo "Deployment finished successfully."
+log_success "Deployment finished successfully."

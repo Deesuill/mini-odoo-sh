@@ -1,6 +1,6 @@
 {
-    "odoo-demo": {
-        "repository": "git@github.com:Deesuill/odoo-demo.git",
-        "port": "18080"
+    "odoo-platform-test": {
+        "repository": "git@github.com:Deesuill/odoo-platform-test.git",
+        "port": 18080
     }
 }

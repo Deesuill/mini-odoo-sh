@@ -2,6 +2,17 @@
 
 set -e
 
+MINI_ODOO_HOME="/opt/mini-odoo-sh"
+
+source "$MINI_ODOO_HOME/lib/common.sh"
+source "$MINI_ODOO_HOME/lib/logging.sh"
+source "$MINI_ODOO_HOME/lib/docker.sh"
+source "$MINI_ODOO_HOME/lib/github.sh"
+source "$MINI_ODOO_HOME/lib/instance.sh"
+source "$MINI_ODOO_HOME/lib/registry.sh"
+
+load_platform_config
+
 INSTANCE_NAME=$1
 REPOSITORY=$2
 
@@ -11,49 +22,39 @@ if [ $# -ne 2 ]; then
     exit 1
 fi
 
+INSTANCE_PATH=$(instance_path "$INSTANCE_NAME")
 
-BASE_PATH="/opt/mini-odoo-instances"
-INSTANCE_PATH="$BASE_PATH/$INSTANCE_NAME"
-
-
-if [ -d "$INSTANCE_PATH" ]; then
-    echo "Instance already exists: $INSTANCE_NAME"
-    exit 1
+if instance_exists "$INSTANCE_NAME"; then
+    log_error "Instance already exists: $INSTANCE_NAME"
 fi
 
+log_info "Creating instance: $INSTANCE_NAME"
+log_info "Repository: $REPOSITORY"
 
-echo "Creating instance: $INSTANCE_NAME"
-echo "Repository: $REPOSITORY"
-
-
-echo "Creating directory..."
+log_info "Creating directory..."
 mkdir -p "$INSTANCE_PATH"
 
-
-echo "Cloning repository..."
+log_info "Cloning repository..."
 git clone "$REPOSITORY" "$INSTANCE_PATH"
 
-echo "Initializing project structure..."
+log_info "Initializing project structure..."
+"$MINI_ODOO_HOME/scripts/init-project.sh" "$INSTANCE_PATH"
 
- /opt/mini-odoo-sh/scripts/init-project.sh "$INSTANCE_PATH"
-
-echo "Creating data folders..."
+log_info "Creating data folders..."
 mkdir -p "$INSTANCE_PATH/data/postgres"
 mkdir -p "$INSTANCE_PATH/data/odoo"
 mkdir -p "$INSTANCE_PATH/addons"
 mkdir -p "$INSTANCE_PATH/config"
 
-echo "Finding available port..."
-PORT=$(/opt/mini-odoo-sh/scripts/get-free-port.sh)
+log_info "Finding available port..."
+PORT=$("$MINI_ODOO_HOME/scripts/get-free-port.sh")
 
-echo "Using port: $PORT"
+log_info "Using port: $PORT"
 
+log_info "Generating docker-compose.yml..."
+"$MINI_ODOO_HOME/scripts/generate-compose.sh" "$INSTANCE_NAME" "$PORT"
 
-echo "Generating docker-compose.yml..."
-/opt/mini-odoo-sh/scripts/generate-compose.sh "$INSTANCE_NAME" "$PORT"
-
-
-echo "Creating instance configuration..."
+log_info "Creating instance configuration..."
 
 cat > "$INSTANCE_PATH/instance.env" <<EOF
 INSTANCE_NAME=$INSTANCE_NAME
@@ -61,29 +62,35 @@ ODOO_PORT=$PORT
 REPOSITORY=$REPOSITORY
 EOF
 
+log_info "Registering instance..."
+registry_register_instance \
+    "$INSTANCE_NAME" \
+    "$REPOSITORY" \
+    "$PORT"
 
-echo "Starting containers..."
+log_info "Configuring GitHub integration..."
+github_bootstrap_instance "$INSTANCE_NAME" "$REPOSITORY"
+
+log_info "Starting containers..."
 
 cd "$INSTANCE_PATH"
 
-docker compose up -d
+docker_compose_up
 
-echo "Saving generated files to repository..."
-
-cd "$INSTANCE_PATH"
+log_info "Saving generated files to repository..."
 
 git add .
 
 if git diff --cached --quiet; then
-    echo "No changes to commit."
+    log_info "No changes to commit."
 else
     git commit -m "Initialize mini-odoo instance"
     git push origin main
 fi
 
-echo ""
+echo
 echo "================================="
-echo "Instance created successfully!"
+log_success "Instance created successfully"
 echo "Name: $INSTANCE_NAME"
 echo "Port: $PORT"
 echo "================================="

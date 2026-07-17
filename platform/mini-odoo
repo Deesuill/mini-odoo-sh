@@ -1,0 +1,183 @@
+#!/bin/bash
+
+set -e
+
+MINI_ODOO_HOME="${MINI_ODOO_HOME:-/opt/mini-odoo-sh}"
+SCRIPTS_PATH="$MINI_ODOO_HOME/scripts"
+
+show_usage() {
+    cat <<'EOF'
+Mini Odoo Platform CLI
+
+Usage:
+  mini-odoo <command> [arguments]
+
+Instance commands:
+  list
+      List registered instances.
+
+  create <instance-name> <repository>
+      Create a new instance.
+
+  destroy <instance-name>
+      Destroy an existing instance.
+
+  deploy <instance-name>
+      Deploy the latest repository changes.
+
+  start <instance-name>
+      Start an instance.
+
+  stop <instance-name>
+      Stop an instance.
+
+  restart <instance-name>
+      Restart an instance.
+
+  status <instance-name>
+      Show Docker status for an instance.
+
+  info <instance-name>
+      Show machine-readable instance information as JSON.
+
+  health <instance-name>
+      Run health checks for an instance.
+
+  backup <instance-name>
+      Create a database backup.
+
+Registry commands:
+  registry validate
+      Validate registry and instance configuration consistency.
+
+  registry sync <instance-name>
+      Synchronize one instance from instance.env.
+
+  registry sync --all
+      Synchronize all instances from instance.env.
+
+Other:
+  help
+      Show this help message.
+
+  version
+      Show CLI version.
+EOF
+}
+
+require_script() {
+    local script_name="$1"
+    local script_path="$SCRIPTS_PATH/$script_name"
+
+    if [ ! -x "$script_path" ]; then
+        echo "Error: required script is missing or not executable:" >&2
+        echo "  $script_path" >&2
+        exit 1
+    fi
+}
+
+run_script() {
+    local script_name="$1"
+    shift
+
+    require_script "$script_name"
+
+    exec "$SCRIPTS_PATH/$script_name" "$@"
+}
+
+if [ $# -eq 0 ]; then
+    show_usage
+    exit 1
+fi
+
+COMMAND="$1"
+shift
+
+case "$COMMAND" in
+    list)
+        run_script "list-instances.sh" "$@"
+        ;;
+
+    create)
+        run_script "create-instance.sh" "$@"
+        ;;
+
+    destroy)
+        run_script "destroy-instance.sh" "$@"
+        ;;
+
+    deploy)
+        run_script "deploy-instance.sh" "$@"
+        ;;
+
+    start)
+        run_script "manage-instance.sh" start "$@"
+        ;;
+
+    stop)
+        run_script "manage-instance.sh" stop "$@"
+        ;;
+
+    restart)
+        run_script "manage-instance.sh" restart "$@"
+        ;;
+
+    status)
+        run_script "manage-instance.sh" status "$@"
+        ;;
+
+    info)
+        run_script "status-instance.sh" "$@"
+        ;;
+
+    health)
+        run_script "health-instance.sh" "$@"
+        ;;
+
+    backup)
+        run_script "backup-instance.sh" "$@"
+        ;;
+
+    registry)
+        if [ $# -eq 0 ]; then
+            echo "Usage:" >&2
+            echo "  mini-odoo registry validate" >&2
+            echo "  mini-odoo registry sync <instance-name|--all>" >&2
+            exit 1
+        fi
+
+        REGISTRY_COMMAND="$1"
+        shift
+
+        case "$REGISTRY_COMMAND" in
+            validate)
+                run_script "validate-registry.sh" "$@"
+                ;;
+
+            sync)
+                run_script "sync-registry.sh" "$@"
+                ;;
+
+            *)
+                echo "Unknown registry command: $REGISTRY_COMMAND" >&2
+                echo "Allowed commands: validate, sync" >&2
+                exit 1
+                ;;
+        esac
+        ;;
+
+    help|--help|-h)
+        show_usage
+        ;;
+
+    version|--version|-v)
+        echo "mini-odoo 0.1.0"
+        ;;
+
+    *)
+        echo "Unknown command: $COMMAND" >&2
+        echo >&2
+        show_usage >&2
+        exit 1
+        ;;
+esac

@@ -1,38 +1,30 @@
 #!/bin/bash
 
-INSTANCE_NAME=$1
-REPOSITORY=$2
-PORT=$3
+set -e
 
-REGISTRY="/opt/mini-odoo-sh/instances.json"
+MINI_ODOO_HOME="/opt/mini-odoo-sh"
 
+source "$MINI_ODOO_HOME/lib/common.sh"
+source "$MINI_ODOO_HOME/lib/logging.sh"
+source "$MINI_ODOO_HOME/lib/registry.sh"
+
+load_platform_config
 
 if [ $# -ne 3 ]; then
-    echo "Usage: register-instance.sh name repo port"
+    echo "Usage:"
+    echo "./register-instance.sh <instance-name> <repository> <port>"
     exit 1
 fi
 
+INSTANCE_NAME="$1"
+REPOSITORY="$2"
+PORT="$3"
 
-python3 <<EOF
-import json
+if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
+    log_error "Invalid port: $PORT"
+fi
 
-file="$REGISTRY"
-
-with open(file) as f:
-    data=json.load(f)
-
-
-data["$INSTANCE_NAME"] = {
-    "repository": "$REPOSITORY",
-    "port": "$PORT"
-}
-
-
-with open(file,"w") as f:
-    json.dump(data,f,indent=4)
-
-EOF
-
-
-echo "Instance registered."
-
+registry_register_instance \
+    "$INSTANCE_NAME" \
+    "$REPOSITORY" \
+    "$PORT"

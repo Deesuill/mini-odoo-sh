@@ -1,12 +1,18 @@
+```bash
 #!/bin/bash
 
 set -e
 
-INSTANCE_NAME=$1
+MINI_ODOO_HOME="/opt/mini-odoo-sh"
 
-BASE_PATH="/opt/mini-odoo-instances"
-INSTANCE_PATH="$BASE_PATH/$INSTANCE_NAME"
+source "$MINI_ODOO_HOME/lib/common.sh"
+source "$MINI_ODOO_HOME/lib/logging.sh"
+source "$MINI_ODOO_HOME/lib/docker.sh"
+source "$MINI_ODOO_HOME/lib/instance.sh"
+source "$MINI_ODOO_HOME/lib/registry.sh"
 
+
+load_platform_config
 
 if [ $# -ne 1 ]; then
     echo "Usage:"
@@ -14,29 +20,25 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
+INSTANCE_NAME="$1"
 
-if [ ! -d "$INSTANCE_PATH" ]; then
-    echo "Instance not found: $INSTANCE_NAME"
-    exit 1
-fi
+instance_require "$INSTANCE_NAME"
 
+INSTANCE_PATH=$(instance_path "$INSTANCE_NAME")
 
-echo "Destroying instance: $INSTANCE_NAME"
+log_warning "Destroying instance: $INSTANCE_NAME"
+log_warning "All containers, volumes and instance files will be removed."
 
+instance_cd "$INSTANCE_NAME"
 
-cd "$INSTANCE_PATH"
+log_info "Stopping containers and removing volumes..."
+docker_compose_down_volumes
 
+log_info "Removing instance files..."
+rm -rf -- "$INSTANCE_PATH"
 
-echo "Stopping containers..."
+log_info "Removing instance from registry..."
+registry_unregister_instance "$INSTANCE_NAME"
 
-docker compose down -v
-
-
-echo "Removing instance files..."
-
-cd "$BASE_PATH"
-
-rm -rf "$INSTANCE_NAME"
-
-
-echo "Instance destroyed successfully."
+log_success "Instance destroyed successfully: $INSTANCE_NAME"
+```

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>Mini Odoo Platform</title>
+
+    <link
+        rel="stylesheet"
+        href="/styles.css"
+    >
+</head>
+
+<body>
+    <header class="topbar">
+        <div>
+            <p class="eyebrow">Mini Odoo Platform</p>
+            <h1>Instances</h1>
+        </div>
+
+        <div class="header-actions">
+            <span
+                id="last-updated"
+                class="last-updated"
+            >
+                Not loaded yet
+            </span>
+
+            <button
+                id="refresh-button"
+                class="primary-button"
+                type="button"
+            >
+                Refresh
+            </button>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <section
+            id="summary"
+            class="summary-grid"
+            aria-label="Platform summary"
+        >
+            <article class="summary-card">
+                <span class="summary-label">Instances</span>
+                <strong
+                    id="instance-count"
+                    class="summary-value"
+                >
+                    0
+                </strong>
+            </article>
+
+            <article class="summary-card">
+                <span class="summary-label">Running</span>
+                <strong
+                    id="running-count"
+                    class="summary-value"
+                >
+                    0
+                </strong>
+            </article>
+
+            <article class="summary-card">
+                <span class="summary-label">Stopped</span>
+                <strong
+                    id="stopped-count"
+                    class="summary-value"
+                >
+                    0
+                </strong>
+            </article>
+
+            <article class="summary-card">
+                <span class="summary-label">Problems</span>
+                <strong
+                    id="problem-count"
+                    class="summary-value"
+                >
+                    0
+                </strong>
+            </article>
+        </section>
+
+        <section>
+            <div
+                id="message"
+                class="message hidden"
+                role="status"
+            ></div>
+
+            <div
+                id="instances-grid"
+                class="instances-grid"
+            ></div>
+
+            <div
+                id="empty-state"
+                class="empty-state hidden"
+            >
+                <h2>No registered instances</h2>
+                <p>
+                    Registered instances will appear here automatically.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <template id="instance-card-template">
+        <article class="instance-card">
+            <div class="instance-header">
+                <div>
+                    <h2 class="instance-name"></h2>
+                    <span class="status-badge"></span>
+                </div>
+
+                <a
+                    class="odoo-link hidden"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open Odoo
+                </a>
+            </div>
+
+            <dl class="instance-details">
+                <div class="detail-row">
+                    <dt>Repository</dt>
+                    <dd class="instance-repository"></dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Port</dt>
+                    <dd class="instance-port"></dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Registered</dt>
+                    <dd class="instance-registered"></dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>HTTP</dt>
+                    <dd class="instance-http"></dd>
+                </div>
+            </dl>
+
+            <div class="services-section">
+                <h3>Services</h3>
+                <div class="services-list"></div>
+            </div>
+            <div class="instance-actions">
+                 <button
+                     class="action-button start-button"
+                     type="button"
+                     data-action="start"
+                 >
+                     Start
+                 </button>
+
+                 <button
+                     class="action-button restart-button"
+                     type="button"
+                     data-action="restart"
+                 >
+                     Restart
+                 </button>
+
+                 <button
+                     class="action-button danger-button stop-button"
+                     type="button"
+                     data-action="stop"
+                 >
+                     Stop
+                 </button>
+             </div>
+
+            <p class="instance-error hidden"></p>
+        </article>
+    </template>
+
+    <script src="/app.js"></script>
+</body>
+</html>

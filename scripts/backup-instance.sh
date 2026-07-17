@@ -2,32 +2,46 @@
 
 set -e
 
+MINI_ODOO_HOME="/opt/mini-odoo-sh"
 
-INSTANCE_NAME=$1
+source "$MINI_ODOO_HOME/lib/common.sh"
+source "$MINI_ODOO_HOME/lib/logging.sh"
+source "$MINI_ODOO_HOME/lib/docker.sh"
+source "$MINI_ODOO_HOME/lib/instance.sh"
 
+load_platform_config
 
 if [ $# -ne 1 ]; then
-    echo "Usage: backup-instance.sh <instance>"
+    echo "Usage:"
+    echo "./backup-instance.sh <instance-name>"
     exit 1
 fi
 
+INSTANCE_NAME="$1"
 
-BACKUP_DIR="/opt/mini-odoo-backups/$INSTANCE_NAME"
+instance_require "$INSTANCE_NAME"
 
+BACKUP_ROOT="${BACKUPS_PATH:-/opt/mini-odoo-backups}"
+BACKUP_DIR="$BACKUP_ROOT/$INSTANCE_NAME"
+BACKUP_FILE="$BACKUP_DIR/database.sql"
+
+POSTGRES_CONTAINER="${INSTANCE_NAME}-postgres"
+
+log_info "Creating backup directory..."
 mkdir -p "$BACKUP_DIR"
 
+log_info "Creating database backup for instance: $INSTANCE_NAME"
 
-echo "Creating database backup..."
+docker_exec "$POSTGRES_CONTAINER" \
+    pg_dump \
+    -U odoo \
+    postgres \
+    > "$BACKUP_FILE"
 
+if [ ! -s "$BACKUP_FILE" ]; then
+    rm -f -- "$BACKUP_FILE"
+    log_error "Database backup is empty or was not created."
+fi
 
-docker exec ${INSTANCE_NAME}-postgres \
-pg_dump \
--U odoo \
-postgres \
-> "$BACKUP_DIR/database.sql"
-
-
-echo "Backup finished."
-
-echo "Location:"
-echo "$BACKUP_DIR"
+log_success "Backup finished successfully."
+log_info "Location: $BACKUP_FILE"
